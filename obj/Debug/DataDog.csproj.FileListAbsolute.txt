@@ -1,0 +1,7 @@
+C:\Users\vygan\Desktop\DataDog\DataDog\bin\Debug\DataDog.exe.config
+C:\Users\vygan\Desktop\DataDog\DataDog\bin\Debug\DataDog.exe
+C:\Users\vygan\Desktop\DataDog\DataDog\bin\Debug\DataDog.pdb
+C:\Users\vygan\Desktop\DataDog\DataDog\obj\Debug\DataDog.csprojResolveAssemblyReference.cache
+C:\Users\vygan\Desktop\DataDog\DataDog\obj\Debug\DataDog.csproj.CoreCompileInputs.cache
+C:\Users\vygan\Desktop\DataDog\DataDog\obj\Debug\DataDog.exe
+C:\Users\vygan\Desktop\DataDog\DataDog\obj\Debug\DataDog.pdb
