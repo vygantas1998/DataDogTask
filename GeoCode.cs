@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Device.Location;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,18 +11,16 @@ namespace DataDog
     {
         public int Id { get; set; }
         public int BreweryId { get; set; }
-        public decimal Latitude { get; set; }
-        public decimal Longitude { get; set; }
+        public GeoCoordinate Coordinates { get; set; }
         public string Accuracy { get; set; }
         
         public GeoCode() { }
 
-        public GeoCode(int id, int breweryId, decimal latitude, decimal longitude, string accuracy)
+        public GeoCode(int id, int breweryId, double latitude, double longitude, string accuracy)
         {
             Id = id;
             BreweryId = breweryId;
-            Latitude = latitude;
-            Longitude = longitude;
+            Coordinates = new GeoCoordinate(latitude, longitude);
             Accuracy = accuracy;
         }
 
@@ -29,8 +28,7 @@ namespace DataDog
         {
             Id = int.Parse(data[0]);
             BreweryId = int.Parse(data[1]);
-            Latitude = decimal.Parse(data[2]);
-            Longitude = decimal.Parse(data[3]);
+            Coordinates = new GeoCoordinate(double.Parse(data[2]), double.Parse(data[3]));
             Accuracy = data[4];
         }
     }

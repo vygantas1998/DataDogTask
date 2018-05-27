@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualBasic.FileIO;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -10,21 +11,27 @@ namespace DataDog
 {
     class ReadData<T> where T : ISetData<T>, new()
     {
-        public static List<T> ReadDataFromWeb(string url)
+        public static List<T> ReadDataFromWeb(string url, string filename)
         {
             List<T> objList = new List<T>();
 
             WebClient client = new WebClient();
-            string file = client.DownloadString(url);
-            string[] lines = new Regex(@"(?m)^[^""\r\n]*(?:(?:""[^""]*"")+[^""\r\n]*)*")
-                .Matches(file).Cast<Match>().Select(m => m.Value).ToArray();
 
-            foreach (string line in lines)
+            string filePath = @"C:\Users\vygan\Desktop\DataDog\DataDog\Files\" + filename;
+
+            client.DownloadFile(url, filePath);
+            string file = client.DownloadString(url);
+
+            using (TextFieldParser parser = new TextFieldParser(filePath))
             {
-                if (line != lines[0] && line.Length != 0)
+                parser.TextFieldType = FieldType.Delimited;
+                parser.HasFieldsEnclosedInQuotes = true;
+                parser.SetDelimiters(",");
+                parser.TrimWhiteSpace = true;
+                parser.ReadLine();
+                while (!parser.EndOfData)
                 {
-                    string[] data = new Regex("((?<=\")[^\"]*(?=\"(,|$)+)|(?<=,|^)[^,\"]*(?=,|$))")
-                        .Matches(line).Cast<Match>().Select(m => m.Value).ToArray();
+                    string[] data = parser.ReadFields();
                     T obj = new T();
                     obj.SetData(data);
                     objList.Add(obj);
