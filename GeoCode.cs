@@ -31,5 +31,9 @@ namespace DataDog
             Coordinates = new GeoCoordinate(double.Parse(data[2]), double.Parse(data[3]));
             Accuracy = data[4];
         }
+        public override string ToString()
+        {
+            return Coordinates.ToString();
+        }
     }
 }

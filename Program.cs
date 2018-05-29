@@ -18,38 +18,66 @@ namespace DataDog
             breweries = ReadData<Brewery>.ReadDataFromWeb("https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/breweries.csv", "breweries.csv");
             geoCodes = ReadData<GeoCode>.ReadDataFromWeb("https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/geocodes.csv", "geocodes.csv");
             beers = ReadData<Beer>.ReadDataFromWeb("https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/beers.csv", "beers.csv");
-            double lat = 51.355468;
-            double longi = 11.100790;
+            double lat = 51.74250300;
+            double longi = 19.43295600;
             GeoCoordinate start = new GeoCoordinate(lat, longi);
-            List<GeoCode> Nearest = geoCodes.FindAll(x => start.GetDistanceTo(x.Coordinates) <= 1000000);
-            Trip(Nearest.FindAll(x => x.Accuracy == "ROOFTOP"), start, 2000000);
+            List<GeoCode> trip = MakeTrip(geoCodes, start, 2000000);
+            PrintBreweries(trip, breweries);
+            foreach(GeoCode code in trip)
+            {
+                Console.WriteLine(code.ToString());
+            }
         }
 
-        static void Trip(List<GeoCode> geoCodes, GeoCoordinate start, double startingDistance)
+        static void PrintBreweries(List<GeoCode> trip, List<Brewery> breweries)
         {
-            List<GeoCode> GeoCodes = geoCodes;
-            GeoCoordinate pos = start;
-            double distance = startingDistance;
-            Console.WriteLine(start.Latitude + ", " + start.Longitude);
-            while (pos.GetDistanceTo(start) <= distance)
+            Console.WriteLine("Found {0} beer factories:", trip.Count - 2);
+            int index = 0;
+            double distance = 0;
+            foreach (GeoCode geoCode in trip)
             {
-                GeoCode thisPos = GeoCodes.OrderByDescending(x => pos.GetDistanceTo(x.Coordinates)).Last();
-                if (start.GetDistanceTo(thisPos.Coordinates) < distance)
+                if (geoCode.Accuracy != "START")
                 {
-                    distance -= pos.GetDistanceTo(thisPos.Coordinates);
-                    //Console.WriteLine(thisPos.BreweryId + " " + distance / 1000 + " " + pos.GetDistanceTo(thisPos.Coordinates)/1000);
-                    Console.WriteLine(thisPos.Coordinates.Latitude + ", " + thisPos.Coordinates.Longitude);
-                    pos = thisPos.Coordinates;
-                    GeoCodes.Remove(thisPos);
+                    distance += geoCode.Coordinates.GetDistanceTo(trip[index - 1].Coordinates);
+                    Console.WriteLine("       -> [{0}] {1}: {2}, {3} distance {4}km", geoCode.BreweryId, breweries.Find(x => x.Id == geoCode.BreweryId).Name, geoCode.Coordinates.Latitude, geoCode.Coordinates.Longitude, geoCode.Coordinates.GetDistanceTo(trip[index - 1].Coordinates) / 1000);
+                }
+                else if (index == trip.Count - 1)
+                {
+                    distance += geoCode.Coordinates.GetDistanceTo(trip[index - 1].Coordinates);
+                    Console.WriteLine("       <- HOME: {0}, {1} distance {2}km", geoCode.Coordinates.Latitude, geoCode.Coordinates.Longitude, geoCode.Coordinates.GetDistanceTo(trip[index - 1].Coordinates) / 1000);
                 }
                 else
                 {
-                    distance -= start.GetDistanceTo(thisPos.Coordinates);
-                    pos = start;
-                    Console.WriteLine(start.Latitude + ", " + start.Longitude);
+                    Console.WriteLine("       -> HOME: {0}, {1} distance 0km", geoCode.Coordinates.Latitude, geoCode.Coordinates.Longitude);
+                }
+                index++;
+            }
+            Console.WriteLine("Total distance travelled: {0}", distance / 1000);
+        }
+
+        static List<GeoCode> MakeTrip(List<GeoCode> geoCodes, GeoCoordinate start, double startingDistance)
+        {
+            List<GeoCode> newList = new List<GeoCode>();
+            List<GeoCode> GeoCodes = geoCodes.FindAll(x => x.Accuracy == "ROOFTOP");
+            GeoCoordinate pos = start;
+            double distance = startingDistance;
+
+            newList.Add(new GeoCode(0, 0, start.Latitude, start.Longitude, "START"));
+
+            while (pos.GetDistanceTo(start) <= distance)
+            {
+                GeoCode thisPos = GeoCodes.OrderByDescending(x => pos.GetDistanceTo(x.Coordinates)).Last();
+                distance -= pos.GetDistanceTo(thisPos.Coordinates);
+                if (thisPos.Coordinates.GetDistanceTo(start) > distance)
+                {
                     break;
                 }
+                pos = thisPos.Coordinates;
+                GeoCodes.Remove(thisPos);
+                newList.Add(thisPos);
             }
+            newList.Add(new GeoCode(0, 0, start.Latitude, start.Longitude, "START"));
+            return newList;
         }
     }
 }

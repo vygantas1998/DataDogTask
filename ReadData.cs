@@ -11,16 +11,17 @@ namespace DataDog
 {
     class ReadData<T> where T : ISetData<T>, new()
     {
-        public static List<T> ReadDataFromWeb(string url, string filename)
+        public static List<T> ReadDataFromWeb(string url, string filename, bool checkForUpdate = false)
         {
             List<T> objList = new List<T>();
 
-            WebClient client = new WebClient();
-
             string filePath = @"C:\Users\vygan\Desktop\DataDog\DataDog\Files\" + filename;
 
-            client.DownloadFile(url, filePath);
-            string file = client.DownloadString(url);
+            if (checkForUpdate)
+            {
+                WebClient client = new WebClient();
+                client.DownloadFile(url, filePath);
+            }
 
             using (TextFieldParser parser = new TextFieldParser(filePath))
             {
