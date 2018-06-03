@@ -48,6 +48,7 @@
     <Compile Include="Brewery.cs" />
     <Compile Include="GeoCode.cs" />
     <Compile Include="ISetData.cs" />
+    <Compile Include="PrintData.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadData.cs" />

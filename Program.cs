@@ -12,47 +12,39 @@ namespace DataDog
     {
         static void Main(string[] args)
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             List<Brewery> breweries = new List<Brewery>();
             List<GeoCode> geoCodes = new List<GeoCode>();
             List<Beer> beers = new List<Beer>();
-            breweries = ReadData<Brewery>.ReadDataFromWeb("https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/breweries.csv", "breweries.csv");
-            geoCodes = ReadData<GeoCode>.ReadDataFromWeb("https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/geocodes.csv", "geocodes.csv");
-            beers = ReadData<Beer>.ReadDataFromWeb("https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/beers.csv", "beers.csv");
-            double lat = 51.74250300;
-            double longi = 19.43295600;
+            bool reDownload = false;
+            if(args.Length == 3)
+            {
+                reDownload = bool.Parse(args[2]);
+            }
+            breweries = ReadData<Brewery>.ReadDataFromWeb("https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/breweries.csv", "breweries.csv", reDownload);
+            geoCodes = ReadData<GeoCode>.ReadDataFromWeb("https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/geocodes.csv", "geocodes.csv", reDownload);
+            beers = ReadData<Beer>.ReadDataFromWeb("https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/beers.csv", "beers.csv", reDownload);
+            double lat = double.Parse(args[0]);
+            double longi = double.Parse(args[1]);
             GeoCoordinate start = new GeoCoordinate(lat, longi);
             List<GeoCode> trip = MakeTrip(geoCodes, start, 2000000);
-            PrintBreweries(trip, breweries);
-            foreach(GeoCode code in trip)
-            {
-                Console.WriteLine(code.ToString());
-            }
+            PrintData.PrintBreweries(trip, breweries);
+            PrintData.PrintBeers(GetBeers(beers, trip));
+            watch.Stop();
+            PrintData.PrintProgramRuntime(watch);
         }
 
-        static void PrintBreweries(List<GeoCode> trip, List<Brewery> breweries)
+        static List<Beer> GetBeers(List<Beer> beers, List<GeoCode> geoCodes)
         {
-            Console.WriteLine("Found {0} beer factories:", trip.Count - 2);
-            int index = 0;
-            double distance = 0;
-            foreach (GeoCode geoCode in trip)
+            List<Beer> beersList = new List<Beer>();
+            foreach (GeoCode geoCode in geoCodes)
             {
-                if (geoCode.Accuracy != "START")
+                foreach (Beer beer in beers.FindAll(x => x.BreweryId == geoCode.BreweryId))
                 {
-                    distance += geoCode.Coordinates.GetDistanceTo(trip[index - 1].Coordinates);
-                    Console.WriteLine("       -> [{0}] {1}: {2}, {3} distance {4}km", geoCode.BreweryId, breweries.Find(x => x.Id == geoCode.BreweryId).Name, geoCode.Coordinates.Latitude, geoCode.Coordinates.Longitude, geoCode.Coordinates.GetDistanceTo(trip[index - 1].Coordinates) / 1000);
+                    beersList.Add(beer);
                 }
-                else if (index == trip.Count - 1)
-                {
-                    distance += geoCode.Coordinates.GetDistanceTo(trip[index - 1].Coordinates);
-                    Console.WriteLine("       <- HOME: {0}, {1} distance {2}km", geoCode.Coordinates.Latitude, geoCode.Coordinates.Longitude, geoCode.Coordinates.GetDistanceTo(trip[index - 1].Coordinates) / 1000);
-                }
-                else
-                {
-                    Console.WriteLine("       -> HOME: {0}, {1} distance 0km", geoCode.Coordinates.Latitude, geoCode.Coordinates.Longitude);
-                }
-                index++;
             }
-            Console.WriteLine("Total distance travelled: {0}", distance / 1000);
+            return beersList;
         }
 
         static List<GeoCode> MakeTrip(List<GeoCode> geoCodes, GeoCoordinate start, double startingDistance)
@@ -72,9 +64,14 @@ namespace DataDog
                 {
                     break;
                 }
-                pos = thisPos.Coordinates;
+                if (!newList.Exists(x => x.BreweryId == thisPos.BreweryId))
+                {
+                    pos = thisPos.Coordinates;
+                    newList.Add(thisPos);
+                }
+
                 GeoCodes.Remove(thisPos);
-                newList.Add(thisPos);
+
             }
             newList.Add(new GeoCode(0, 0, start.Latitude, start.Longitude, "START"));
             return newList;
