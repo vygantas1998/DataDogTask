@@ -41,7 +41,7 @@ namespace DataDog
                 index++;
             }
             Console.WriteLine();
-            Console.WriteLine("Total distance travelled: {0:0}", distance / 1000);
+            Console.WriteLine("Total distance travelled: {0:0}km", distance / 1000);
             Console.WriteLine();
         }
         public static void PrintProgramRuntime(System.Diagnostics.Stopwatch watch)

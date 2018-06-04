@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -14,8 +15,15 @@ namespace DataDog
         public static List<T> ReadDataFromWeb(string url, string filename, bool checkForUpdate = false)
         {
             List<T> objList = new List<T>();
+             
+            string filePath = Directory.GetCurrentDirectory() + "\\Files\\";
 
-            string filePath = @"C:\Users\vygan\Desktop\DataDog\DataDog\Files\" + filename;
+            if (!Directory.Exists(filePath))
+            {
+                Directory.CreateDirectory(filePath);
+            }
+
+            filePath += filename;
 
             if (checkForUpdate)
             {
