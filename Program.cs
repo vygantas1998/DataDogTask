@@ -54,7 +54,7 @@ namespace DataDog
             GeoCoordinate pos = start;
             double distance = startingDistance;
 
-            newList.Add(new GeoCode(0, 0, start.Latitude, start.Longitude, "START"));
+            newList.Add(new GeoCode(0, 0, start, "START"));
 
             while (pos.GetDistanceTo(start) <= distance)
             {
@@ -73,7 +73,7 @@ namespace DataDog
                 GeoCodes.Remove(thisPos);
 
             }
-            newList.Add(new GeoCode(0, 0, start.Latitude, start.Longitude, "START"));
+            newList.Add(new GeoCode(0, 0, start, "START"));
             return newList;
         }
     }

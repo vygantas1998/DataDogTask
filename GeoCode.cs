@@ -16,11 +16,11 @@ namespace DataDog
         
         public GeoCode() { }
 
-        public GeoCode(int id, int breweryId, double latitude, double longitude, string accuracy)
+        public GeoCode(int id, int breweryId, GeoCoordinate coordinates, string accuracy)
         {
             Id = id;
             BreweryId = breweryId;
-            Coordinates = new GeoCoordinate(latitude, longitude);
+            Coordinates = coordinates;
             Accuracy = accuracy;
         }
 
